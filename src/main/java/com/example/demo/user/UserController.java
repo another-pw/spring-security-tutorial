@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("api/user")
 public class UserController {
@@ -20,9 +22,9 @@ public class UserController {
         this.userRepository = userRepository;
     }
 
-    @GetMapping("health")
-    public ResponseEntity<String> health() {
-        return new ResponseEntity<>("api/user is alive!", HttpStatus.OK);
+    @GetMapping("get-all")
+    public ResponseEntity<List<User>> getAllUsers() {
+        return new ResponseEntity<>(userRepository.findAll(), HttpStatus.OK);
     }
 
     @PostMapping("create")

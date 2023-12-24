@@ -18,10 +18,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests((authorize) -> authorize
-                        .anyRequest().authenticated()
-                )
+                .headers(headers -> headers.frameOptions().disable())
                 .csrf().disable()
+                .authorizeHttpRequests((authorize) -> authorize
+                        .requestMatchers("api/user/create").hasRole("ADMIN")
+                        .requestMatchers("api/**").hasAnyRole("USER", "ADMIN")
+                        .anyRequest().permitAll()
+                )
                 .httpBasic(Customizer.withDefaults())
                 .formLogin(Customizer.withDefaults());
 
@@ -30,13 +33,16 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        UserDetails userDetails = User.withDefaultPasswordEncoder()
-                .username("admin")
-                .password("password")
+        UserDetails admin = User.withUsername("admin")
+                .password("{noop}password")
                 .roles("ADMIN")
                 .build();
 
-        return new InMemoryUserDetailsManager(userDetails);
-    }
+        UserDetails user = User.withUsername("user")
+                .password("{noop}password")
+                .roles("USER")
+                .build();
 
+        return new InMemoryUserDetailsManager(admin, user);
+    }
 }
