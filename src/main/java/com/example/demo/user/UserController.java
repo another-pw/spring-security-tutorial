@@ -28,13 +28,13 @@ public class UserController {
     }
 
     @PostMapping("create")
-    public ResponseEntity<String> createUser(@RequestBody UserEntityDao userEntityDao) {
-        userRepository.save(new User(userEntityDao.username(), userEntityDao.password()));
+    public ResponseEntity<String> createUser(@RequestBody UserEntityDto userEntityDto) {
+        userRepository.save(new User(userEntityDto.username(), userEntityDto.password()));
 
         return new ResponseEntity<>("save user successfully!", HttpStatus.CREATED);
     }
 
-    public record UserEntityDao(String username, String password) {
+    public record UserEntityDto(String username, String password) {
 
     }
 }
