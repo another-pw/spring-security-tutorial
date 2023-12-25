@@ -1,19 +1,29 @@
 package com.example.demo.config;
 
+import com.example.demo.user.CustomJdbcUserDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    private final CustomJdbcUserDetailsService customJdbcUserDetailsService;
+
+    @Autowired
+    public SecurityConfig(CustomJdbcUserDetailsService customJdbcUserDetailsService) {
+        this.customJdbcUserDetailsService = customJdbcUserDetailsService;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -21,7 +31,7 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions().disable())
                 .csrf().disable()
                 .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers("api/user/create").hasRole("ADMIN")
+                        .requestMatchers("api/user/create").permitAll()
                         .requestMatchers("api/**").hasAnyRole("USER", "ADMIN")
                         .anyRequest().permitAll()
                 )
@@ -32,17 +42,16 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        UserDetails admin = User.withUsername("admin")
-                .password("{noop}password")
-                .roles("ADMIN")
-                .build();
+    public AuthenticationManager authenticationManager() {
+        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+        authenticationProvider.setUserDetailsService(customJdbcUserDetailsService);
+        authenticationProvider.setPasswordEncoder(passwordEncoder());
 
-        UserDetails user = User.withUsername("user")
-                .password("{noop}password")
-                .roles("USER")
-                .build();
+        return new ProviderManager(authenticationProvider);
+    }
 
-        return new InMemoryUserDetailsManager(admin, user);
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

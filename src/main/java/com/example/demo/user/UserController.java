@@ -3,6 +3,7 @@ package com.example.demo.user;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,9 +18,12 @@ public class UserController {
 
     private final UserRepository userRepository;
 
+    private final PasswordEncoder passwordEncoder;
+
     @Autowired
-    public UserController(UserRepository userRepository) {
+    public UserController(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping("get-all")
@@ -28,13 +32,17 @@ public class UserController {
     }
 
     @PostMapping("create")
-    public ResponseEntity<String> createUser(@RequestBody UserEntityDao userEntityDao) {
-        userRepository.save(new User(userEntityDao.username(), userEntityDao.password()));
+    public ResponseEntity<String> createUser(@RequestBody UserEntityDto userEntityDto) {
+        userRepository.save(new User(
+                userEntityDto.username(),
+                passwordEncoder.encode(userEntityDto.password()),
+                userEntityDto.role()
+        ));
 
         return new ResponseEntity<>("save user successfully!", HttpStatus.CREATED);
     }
 
-    public record UserEntityDao(String username, String password) {
+    public record UserEntityDto(String username, String password, String role) {
 
     }
 }

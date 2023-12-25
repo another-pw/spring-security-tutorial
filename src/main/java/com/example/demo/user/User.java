@@ -25,13 +25,17 @@ public class User {
     @UpdateTimestamp
     private Date updatedAt;
 
+    @Enumerated(EnumType.STRING)
+    private UserRole role;
+
     public User() {
 
     }
 
-    public User(String username, String password) {
+    public User(String username, String password, String role) {
         this.username = username;
         this.password = password;
+        this.role = UserRole.valueOf(role);
     }
 
     public Integer getUserId() {
@@ -56,6 +60,14 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public UserRole getRole() {
+        return role;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
     }
 
     public Date getCreatedAt() {
